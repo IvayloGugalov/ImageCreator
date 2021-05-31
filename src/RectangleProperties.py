@@ -1,4 +1,4 @@
-from Convert_To_Yolo_Format import convert_labels
+from ConvertToYoloFormat import convert_labels
 
 special_symbols = {
 	'0': 0,
@@ -31,23 +31,35 @@ def try_write_symbol_annotation(text_file_path, symbol, x1, y1, x2, y2):
             file.write("{symbol_id} {x_center_norm} {y_center_norm} {width_norm} {height_norm}\n"
                 .format(symbol_id=symbol_id, x_center_norm=x_center_norm, y_center_norm=y_center_norm, width_norm=width_norm, height_norm=height_norm))
 
-def rectangle_get_coordinates(symbol, x, y, text_size_x, text_size_y):
-    x_top_point = x - 2
-    x_lower_point = x + text_size_x + 2
-    y_lower_point = y + text_size_y + 2
-    # ImageDraw.text has margins on the text that is drawn, so we are compensating it here
+def get_rectangle_coordinates(symbol, x, y, rotated_img_width, rotated_img_height, symbol_width, symbol_height):
     if symbol == '.':
-        y_top_point = y + (y_lower_point - y) * 0.8
-    elif symbol == '=':
-        y_top_point = y + (y_lower_point - y) * 0.5 - 3
-        y_lower_point = y_lower_point - (y_lower_point - y_top_point) * 0.25
+        # Rectangle will take the whole area of the pasted image and not the symbol
+        x2 = x + rotated_img_width
+        y2 = y + rotated_img_height
+        return x, y, x2, y2
     else:
-        y_top_point = y + (y_lower_point - y) * 0.3 - 3
+        x1 = (rotated_img_width - symbol_width - 5) // 2 + x
+        y1 = (rotated_img_height - symbol_height - 5) // 2 + y
+        x2 = x1 + symbol_width + 5
+        y2 = y1 + symbol_height + 5
+        return x1, y1, x2, y2
 
-    return (x_top_point, y_top_point, x_lower_point, y_lower_point)
-    # return ((x_top_point, y_top_point), (x_lower_point, y_lower_point))
+# def rectangle_get_coordinates(symbol, x, y, text_size_x, text_size_y):
+#     x_top_point = x - 2
+#     x_lower_point = x + text_size_x + 2
+#     y_lower_point = y + text_size_y + 2
+#     # ImageDraw.text has margins on the text that is drawn, so we are compensating it here
+#     if symbol == '.':
+#         y_top_point = y + (y_lower_point - y) * 0.8
+#     elif symbol == '=':
+#         y_top_point = y + (y_lower_point - y) * 0.5 - 3
+#         y_lower_point = y_lower_point - (y_lower_point - y_top_point) * 0.25
+#     else:
+#         y_top_point = y + (y_lower_point - y) * 0.3 - 3
+#
+#     return x_top_point, y_top_point, x_lower_point, y_lower_point
 
-def rectangle_color_outline(symbol):
+def get_rectangle_color_outline(symbol):
     if symbol in special_symbols.keys():
         switcher = {
             # Red
